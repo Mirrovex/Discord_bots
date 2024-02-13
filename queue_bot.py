@@ -18,9 +18,9 @@ class aClient(discord.Client):
         self.synced = False
         self.added = False
 
-        self.dluga = []
+        self.dluga = {}
         self.kolejka = []
-        self.krotka = []
+        self.krotka = {}
 
 
 
@@ -56,13 +56,13 @@ class aClient(discord.Client):
         kolejka = ""
         krotka = ""
         x = 1
-        for member in self.dluga:
-            dluga += f"{x}. {member}\n"
+        for key in self.dluga:
+            dluga += f"{x}. {key} | od `{self.dluga[key]}`\n"
             x += 1
 
         x = 1
-        for member in self.krotka:
-            krotka += f"{x}. {member}\n"
+        for key in self.krotka:
+            krotka += f"{x}. {key} | od `{self.krotka[key]}`\n"
             x += 1
 
         x = 1
@@ -109,7 +109,7 @@ class Priv_Btn(View):
     async def kolejka_btn(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer(thinking = True)
 
-        client.dluga.append(f'{interaction.user.mention} | od `{client.get_time()}`')
+        client.dluga[interaction.user.mention] = client.get_time()
         client.kolejka.remove(interaction.user)
 
         await client.update_embed()
@@ -163,10 +163,10 @@ class Break_Ticket(View):
     async def dluga_btn(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer(thinking = True, ephemeral = True)
 
-        if interaction.user.mention in str(client.dluga) or interaction.user.mention in str(client.krotka):
+        if interaction.user.mention in client.dluga or interaction.user.mention in client.krotka:
             await interaction.edit_original_response(content = "Już jesteś na przerwie")
         elif interaction.user in client.kolejka or len(client.kolejka) == 0:
-            client.dluga.append(f'{interaction.user.mention} | od `{client.get_time()}`')
+            client.dluga[interaction.user.mention] = client.get_time()
             if interaction.user in client.kolejka:
                 client.kolejka.remove(interaction.user)
 
@@ -179,10 +179,10 @@ class Break_Ticket(View):
     async def krotka_btn(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer(thinking = True, ephemeral = True)
 
-        if interaction.user.mention in str(client.dluga) or interaction.user.mention in str(client.krotka):
+        if interaction.user.mention in client.dluga or interaction.user.mention in client.krotka:
             await interaction.edit_original_response(content = "Jesteś już na przerwie")
         else:
-            client.krotka.append(f'{interaction.user.mention} | od `{client.get_time()}`')
+            client.krotka[interaction.user.mention] = client.get_time()
 
             await client.update_embed()
             await interaction.edit_original_response(content = f"Możesz iść na krótką {client.krotka_img} przerwę")
@@ -191,25 +191,20 @@ class Break_Ticket(View):
     async def wroc_btn(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer(thinking = True, ephemeral = True)
 
-        for member in client.dluga:
-            if interaction.user.mention in member:
-                client.dluga.remove(member)
+        if interaction.user.mention in client.dluga:
+            del client.dluga[interaction.user.mention]
             
-                await client.update_embed()
-                await interaction.edit_original_response(content = "Możesz zacząć pracować 😀")
+            await client.update_embed()
+            await interaction.edit_original_response(content = "Możesz zacząć pracować 😀")
 
-                await client.next_break()
-                break
-        else:
-            for member in client.krotka:
-                if interaction.user.mention in member:
-                    client.krotka.remove(member)
+            await client.next_break()
+        elif interaction.user.mention in client.krotka:
+            del client.krotka[interaction.user.mention]
                 
-                    await client.update_embed()
-                    await interaction.edit_original_response(content = "Możesz zacząć pracować 😀")
-                    break
-            else:
-                await interaction.edit_original_response(content = "Nie jesteś aktualnie na przerwie")
+            await client.update_embed()
+            await interaction.edit_original_response(content = "Możesz zacząć pracować 😀")
+        else:
+            await interaction.edit_original_response(content = "Nie jesteś aktualnie na przerwie")
 
 
 @tree.command(name = 'przerwy', description = 'Wysyła wiadomość do zarządzania przerwami')
