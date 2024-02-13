@@ -51,9 +51,6 @@ class aClient(discord.Client):
 
         print("Bot jest gotowy")
 
-    async def on_message(self, message):
-        pass
-
     async def update_embed(self):
         dluga = ""
         kolejka = ""
