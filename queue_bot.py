@@ -78,8 +78,8 @@ class aClient(discord.Client):
             description = f"Kliknij prycisk by zapisać się do kolejki {self.kolejka_img} na długą przerwę, lub jeśli idziesz na krótką {self.krotka_img} lub długą {self.dluga_img} przerwę.\nNie zapomnij kliknąć wróciłem/am {self.wroc_img} po powrocie",
             color = discord.Colour.from_str("#02f5f5")
         )
-        embed.add_field(name = f"Na długiej przerwie", value = dluga, inline = True)
-        embed.add_field(name = f"Na krótkiej przerwie", value = krotka, inline = True)
+        embed.add_field(name = "Na długiej przerwie", value = dluga, inline = True)
+        embed.add_field(name = "Na krótkiej przerwie", value = krotka, inline = True)
         embed.add_field(name = "Kolejka na długą przerwę", value = kolejka, inline = False)
         embed.set_footer(text = "Created by Filip Mickiewicz")
 
@@ -158,7 +158,7 @@ class Break_Ticket(View):
             await client.update_embed()
 
             if len(client.kolejka) == 1 and len(client.dluga) == 0:
-                await interaction.edit_original_response(content = "Nie ma nikogo w kolejce, możesz iść od razu. Nie zapomnij kliknąć `Długa` 🍗")
+                await interaction.edit_original_response(content = f"Nie ma nikogo w kolejce, możesz iść od razu. Nie zapomnij kliknąć `Długa` {client.dluga_img}")
             else:
                 await interaction.edit_original_response(content = "Dodano cię do kolejki")
 
@@ -223,10 +223,10 @@ async def self(interaction: discord.Interaction):
             description = f"Kliknij prycisk by zapisać się do kolejki {client.kolejka_img} na długą przerwę, lub jeśli idziesz na krótką {client.krotka_img} lub długą {client.dluga_img} przerwę.\nNie zapomnij kliknąć wróciłem/am {client.wroc_img} po powrocie",
             color = discord.Colour.from_str("#02f5f5")
         )
-        embed.add_field(name = f"Na długiej przerwie", value = "", inline = True)
-        embed.add_field(name = f"Na krótkiej przerwie", value = "", inline = True)
+        embed.add_field(name = "Na długiej przerwie", value = "", inline = True)
+        embed.add_field(name = "Na krótkiej przerwie", value = "", inline = True)
         embed.add_field(name = "Kolejka na długą przerwę", value = "", inline = False)
-        embed.set_footer(text="Created by Filip Mickiewicz")
+        embed.set_footer(text = "Created by Filip Mickiewicz")
 
         await interaction.channel.send(embed = embed, view = Break_Ticket())
         await interaction.response.send_message('Utworzono wiadomość', ephemeral = True)
