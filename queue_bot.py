@@ -4,9 +4,11 @@ from discord.ui import View
 
 import pytz
 import datetime
+import json
 
 
-TOKEN = "token"
+with open("./token.json") as file:
+    TOKEN = json.load(file)["queue"]
 
 
 class aClient(discord.Client):

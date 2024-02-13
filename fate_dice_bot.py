@@ -4,8 +4,14 @@ import discord
 from discord.ext import commands
 import random
 
+import json
+
+
+with open("./token.json") as file:
+    TOKEN = json.load(file)["fate"]
+
+
 client = commands.Bot(command_prefix = '.')
-TOKEN = "token"
 
 @client.event
 async def on_ready():

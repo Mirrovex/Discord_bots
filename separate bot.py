@@ -2,13 +2,16 @@ import discord
 from discord.ext import commands
 import asyncio
 
+import json
+
 client = commands.Bot(command_prefix = '.')
 task = None
 info_list = []
 czas = 60*8 #oddzielnie jest co 8 min (60*8)
 
 
-TOKEN = "token"
+with open("./token.json") as file:
+    TOKEN = json.load(file)["separate"]
 
 
 async def separate(ctx, msg):

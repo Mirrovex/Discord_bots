@@ -4,8 +4,11 @@ from discord import app_commands, ui, utils
 import os
 import asyncio
 
+import json
 
-TOKEN = "token"
+
+with open("./token.json") as file:
+    TOKEN = json.load(file)["find"]
 
 
 all_guilds = []
