@@ -22,10 +22,19 @@ class aClient(discord.Client):
         self.kolejka = []
         self.krotka = []
 
+
+
+        # można edytować
+
+        self.timezone = pytz.timezone("Europe/Warsaw") # strefa czasowa
+
+        # emotki do przycisków
         self.dluga_img = "🍗"
         self.krotka_img = "🍩"
         self.kolejka_img = "📝"
         self.wroc_img = "✅"
+
+        self.max = 2 # maksymalna ilość osób na długiej przerwie
 
     async def on_ready(self):
         await self.wait_until_ready()
@@ -77,8 +86,7 @@ class aClient(discord.Client):
         await self.przerwa_msg.edit(embed = embed)
 
     def get_time(self):
-        tz = pytz.timezone("Europe/Warsaw")
-        return datetime.datetime.now(tz=tz).strftime("%H:%M")
+        return datetime.datetime.now(tz = self.timezone).strftime("%H:%M")
     
     async def next_break(self):
         if len(self.kolejka) > 0:
@@ -104,7 +112,7 @@ class Priv_Btn(View):
     async def kolejka_btn(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer(thinking = True)
 
-        client.dluga.append(f'{interaction.user.mention} (od `{client.get_time()}`)')
+        client.dluga.append(f'{interaction.user.mention} | od `{client.get_time()}`')
         client.kolejka.remove(interaction.user)
 
         await client.update_embed()
@@ -149,7 +157,7 @@ class Break_Ticket(View):
 
             await client.update_embed()
 
-            if len(client.kolejka) == 1:
+            if len(client.kolejka) == 1 and len(client.dluga) == 0:
                 await interaction.edit_original_response(content = "Nie ma nikogo w kolejce, możesz iść od razu. Nie zapomnij kliknąć `Długa` 🍗")
             else:
                 await interaction.edit_original_response(content = "Dodano cię do kolejki")
@@ -160,9 +168,10 @@ class Break_Ticket(View):
 
         if interaction.user.mention in str(client.dluga) or interaction.user.mention in str(client.krotka):
             await interaction.edit_original_response(content = "Już jesteś na przerwie")
-        elif interaction.user in client.kolejka:
-            client.dluga.append(f'{interaction.user.mention} (od `{client.get_time()}`)')
-            client.kolejka.remove(interaction.user)
+        elif interaction.user in client.kolejka or len(client.kolejka) == 0:
+            client.dluga.append(f'{interaction.user.mention} | od `{client.get_time()}`')
+            if interaction.user in client.kolejka:
+                client.kolejka.remove(interaction.user)
 
             await client.update_embed()
             await interaction.edit_original_response(content = f"Możesz iść na długą {client.dluga_img} przerwę")
@@ -176,7 +185,7 @@ class Break_Ticket(View):
         if interaction.user.mention in str(client.dluga) or interaction.user.mention in str(client.krotka):
             await interaction.edit_original_response(content = "Jesteś już na przerwie")
         else:
-            client.krotka.append(f'{interaction.user.mention} (od `{client.get_time()}`)')
+            client.krotka.append(f'{interaction.user.mention} | od `{client.get_time()}`')
 
             await client.update_embed()
             await interaction.edit_original_response(content = f"Możesz iść na krótką {client.krotka_img} przerwę")
