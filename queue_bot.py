@@ -24,6 +24,9 @@ class aClient(discord.Client):
         self.kolejka = []
         self.krotka = {}
 
+        self.author = "Created by Filip Mickiewicz | mirrovex@wp.pl"
+        self.author_img = "https://avatars.githubusercontent.com/u/69217021?v=4"
+
 
 
         # można edytować
@@ -44,7 +47,7 @@ class aClient(discord.Client):
             await tree.sync()
             self.synced = True
 
-        if not self.added: # włączenei wiadomości embed
+        if not self.added: # włączeie wiadomości embed
             self.add_view(Break_Ticket())
             self.added = True
 
@@ -80,7 +83,7 @@ class aClient(discord.Client):
         embed.add_field(name = "Na długiej przerwie", value = dluga, inline = True)
         embed.add_field(name = "Na krótkiej przerwie", value = krotka, inline = True)
         embed.add_field(name = "Kolejka na długą przerwę", value = kolejka, inline = False)
-        embed.set_footer(text = "Created by Filip Mickiewicz")
+        embed.set_footer(text = self.author, icon_url = self.author_img)
 
         await self.przerwa_msg.edit(embed = embed)
 
@@ -220,7 +223,7 @@ async def self(interaction: discord.Interaction):
         embed.add_field(name = "Na długiej przerwie", value = "", inline = True)
         embed.add_field(name = "Na krótkiej przerwie", value = "", inline = True)
         embed.add_field(name = "Kolejka na długą przerwę", value = "", inline = False)
-        embed.set_footer(text = "Created by Filip Mickiewicz")
+        embed.set_footer(text = client.author, icon_url = client.author_img)
 
         await interaction.channel.send(embed = embed, view = Break_Ticket())
         await interaction.response.send_message('Utworzono wiadomość', ephemeral = True)
