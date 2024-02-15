@@ -8,8 +8,15 @@ from discord.ext import tasks
 import pytz
 import datetime
 import json
+import os
+
+try:
+   os.mkdir("./backup")
+except:
+    print("Folder istnieje")
 
 
+# Discord bot TOKEN
 try:
     with open("./token.json") as file:
         TOKEN = json.load(file)["queue"]
@@ -20,7 +27,7 @@ except:
 class aClient(discord.Client):
 
     def __init__(self):
-        super().__init__(intents=discord.Intents.all())
+        super().__init__(intents = discord.Intents.all())
         self.synced = False
         self.added = False
         self.looped = False
@@ -45,6 +52,7 @@ class aClient(discord.Client):
         self.wroc_img = "✅"
 
         self.max = 2  # maksymalna ilość osób na długiej przerwie
+        self.backup_role = None # id roli, która może używać /kopiuj /wklej i /usuń
 
         # ===== MOŻNA EDYTOWAĆ ===== #
 
@@ -64,7 +72,7 @@ class aClient(discord.Client):
             self.looped = True
 
         try:
-            with open("przerwa_msg.json", "r") as file:
+            with open("./backup/przerwa_msg.json", "r") as file:
                 json_object = json.load(file)
 
             self.przerwa_kanal = self.get_channel(json_object["channel_id"])
@@ -125,15 +133,15 @@ tree = app_commands.CommandTree(client)
 @tasks.loop(minutes=10)
 async def backup_loop():
     if client.backup:
-        with open("kolejka.json", "w") as file:
+        with open("./backup/kolejka.json", "w") as file:
             json_object = json.dumps(client.kolejka)
             file.write(json_object)
 
-        with open("dluga.json", "w") as file:
+        with open("./backup/dluga.json", "w") as file:
             json_object = json.dumps(client.dluga)
             file.write(json_object)
 
-        with open("krotka.json", "w") as file:
+        with open("./backup/krotka.json", "w") as file:
             json_object = json.dumps(client.krotka)
             file.write(json_object)
 
@@ -272,80 +280,92 @@ class Break_Ticket(View):
 
 @tree.command(name = 'przerwy', description = 'Wysyła wiadomość do zarządzania przerwami')
 async def self(interaction: discord.Interaction):
-    if client.przerwa_msg == None:
-        embed = discord.Embed(
-            title = "Przerwy CeZ",
-            description = f"Kliknij prycisk by zapisać się do kolejki {client.kolejka_img} na długą przerwę, lub jeśli idziesz na krótką {client.krotka_img} lub długą {client.dluga_img} przerwę.\nNie zapomnij kliknąć wróciłem/am {client.wroc_img} po powrocie",
-            color = discord.Colour.from_str("#02f5f5")
-        )
-        embed.add_field(name = "Na długiej przerwie", value = "", inline = True)
-        embed.add_field(name = "Na krótkiej przerwie", value = "", inline = True)
-        embed.add_field(name = "Kolejka na długą przerwę", value = "", inline = False)
-        embed.set_footer(text = client.author, icon_url = client.author_img)
+    if client.backup_role == None or client.backup_role in str(interaction.user.roles):
+        if client.przerwa_msg == None:
+            embed = discord.Embed(
+                title = "Przerwy CeZ",
+                description = f"Kliknij prycisk by zapisać się do kolejki {client.kolejka_img} na długą przerwę, lub jeśli idziesz na krótką {client.krotka_img} lub długą {client.dluga_img} przerwę.\nNie zapomnij kliknąć wróciłem/am {client.wroc_img} po powrocie",
+                color = discord.Colour.from_str("#02f5f5")
+            )
+            embed.add_field(name = "Na długiej przerwie", value = "", inline = True)
+            embed.add_field(name = "Na krótkiej przerwie", value = "", inline = True)
+            embed.add_field(name = "Kolejka na długą przerwę", value = "", inline = False)
+            embed.set_footer(text = client.author, icon_url = client.author_img)
 
-        msg = await interaction.channel.send(embed = embed, view = Break_Ticket())
-        msg_channel = {"msg_id": msg.id, "channel_id": msg.channel.id}
-        client.przerwa_msg = msg
+            msg = await interaction.channel.send(embed = embed, view = Break_Ticket())
+            msg_channel = {"msg_id": msg.id, "channel_id": msg.channel.id}
+            client.przerwa_msg = msg
 
-        with open("przerwa_msg.json", "w") as file:
-            json_object = json.dumps(msg_channel, indent=2)
-            file.write(json_object)
+            with open("./backup/przerwa_msg.json", "w") as file:
+                json_object = json.dumps(msg_channel, indent=2)
+                file.write(json_object)
 
-        await interaction.response.send_message('Utworzono wiadomość', ephemeral = True)
+            await interaction.response.send_message('Utworzono wiadomość', ephemeral = True)
+        else:
+            await interaction.response.send_message('Wiadomość już istnieje', ephemeral = True)
     else:
-        await interaction.response.send_message('Wiadomość już istnieje', ephemeral = True)
+        await interaction.response.send_message("Nie masz do tego uprawnień", ephemeral = True)
 
 
 @tree.command(name = 'kopiuj', description = 'Kopiuje zapisane osoby')
 async def self(interaction: discord.Interaction):
-    await interaction.response.defer(thinking = True, ephemeral = True)
+    if client.backup_role == None or client.backup_role in str(interaction.user.roles):
+        await interaction.response.defer(thinking = True, ephemeral = True)
 
-    with open("kolejka.json", "w") as file:
-        json_object = json.dumps(client.kolejka)
-        file.write(json_object)
+        with open("./backup/kolejka.json", "w") as file:
+            json_object = json.dumps(client.kolejka)
+            file.write(json_object)
 
-    with open("dluga.json", "w") as file:
-        json_object = json.dumps(client.dluga)
-        file.write(json_object)
+        with open("./backup/dluga.json", "w") as file:
+            json_object = json.dumps(client.dluga)
+            file.write(json_object)
 
-    with open("krotka.json", "w") as file:
-        json_object = json.dumps(client.krotka)
-        file.write(json_object)
+        with open("./backup/krotka.json", "w") as file:
+            json_object = json.dumps(client.krotka)
+            file.write(json_object)
 
-    await interaction.edit_original_response(content = "Skopiowano osoby")
+        await interaction.edit_original_response(content = "Skopiowano osoby")
+    else:
+        await interaction.response.send_message("Nie masz do tego uprawnień", ephemeral = True)
 
 
 @tree.command(name = 'wklej', description = 'Wkleja skopiowane osoby')
 async def self(interaction: discord.Interaction):
-    await interaction.response.defer(thinking = True, ephemeral = True)
+    if client.backup_role == None or client.backup_role in str(interaction.user.roles):
+        await interaction.response.defer(thinking = True, ephemeral = True)
 
-    with open("kolejka.json", "r") as file:
-        json_object = json.load(file)
-        client.kolejka = json_object
+        with open("./backup/kolejka.json", "r") as file:
+            json_object = json.load(file)
+            client.kolejka = json_object
 
-    with open("dluga.json", "r") as file:
-        json_object = json.load(file)
-        client.dluga = json_object
+        with open("./backup/dluga.json", "r") as file:
+            json_object = json.load(file)
+            client.dluga = json_object
 
-    with open("krotka.json", "r") as file:
-        json_object = json.load(file)
-        client.krotka = json_object
+        with open("./backup/krotka.json", "r") as file:
+            json_object = json.load(file)
+            client.krotka = json_object
 
-    await client.update_embed()
+        await client.update_embed()
 
-    await interaction.edit_original_response(content = "Wklejono osoby")
+        await interaction.edit_original_response(content = "Wklejono osoby")
+    else:
+        await interaction.response.send_message("Nie masz do tego uprawnień", ephemeral = True)
 
 @tree.command(name='wyczyść', description='Usuwa wszystkie osoby')
 async def self(interaction: discord.Interaction):
-    await interaction.response.defer(thinking = True, ephemeral = True)
+    if client.backup_role == None or client.backup_role in str(interaction.user.roles):
+        await interaction.response.defer(thinking = True, ephemeral = True)
 
-    client.kolejka = []
-    client.dluga = {}
-    client.krotka = {}
+        client.kolejka = []
+        client.dluga = {}
+        client.krotka = {}
 
-    await client.update_embed()
+        await client.update_embed()
 
-    await interaction.edit_original_response(content = "Usunięto osoby")
+        await interaction.edit_original_response(content = "Usunięto osoby")
+    else:
+        await interaction.response.send_message("Nie masz do tego uprawnień", ephemeral = True)
 
 
 
