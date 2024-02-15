@@ -1,4 +1,4 @@
-# pip install discord.py pytz datetime
+# pip install discord.py pytz
 
 import discord
 from discord import app_commands, ui
@@ -33,7 +33,8 @@ class aClient(discord.Client):
         self.author = "Created by Filip Mickiewicz | mirrovex@wp.pl"
         self.author_img = "https://avatars.githubusercontent.com/u/69217021?v=4"
 
-        # można edytować
+
+        # ===== MOŻNA EDYTOWAĆ ===== #
 
         self.timezone = pytz.timezone("Europe/Warsaw")  # strefa czasowa
 
@@ -44,6 +45,9 @@ class aClient(discord.Client):
         self.wroc_img = "✅"
 
         self.max = 2  # maksymalna ilość osób na długiej przerwie
+
+        # ===== MOŻNA EDYTOWAĆ ===== #
+
 
     async def on_ready(self):
         await self.wait_until_ready()
@@ -218,7 +222,7 @@ class Break_Ticket(View):
             else:
                 await interaction.edit_original_response(content = "Dodano cię do kolejki")
 
-    @ui.button(label = "Długa", emoji = f"{client.dluga_img}", custom_id =  "dluga_btn")
+    @ui.button(label = "Długa", emoji = f"{client.dluga_img}", custom_id = "dluga_btn")
     async def dluga_btn(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer(thinking = True, ephemeral = True)
 
@@ -234,7 +238,7 @@ class Break_Ticket(View):
         else:
             await interaction.edit_original_response(content = f"Nie zapisałeś się na przerwę, by to zrobić kliknij `Kolejka` {client.kolejka_img}")
 
-    @ui.button(label="Krótka", emoji = f"{client.krotka_img}", custom_id="krotka_btn")
+    @ui.button(label = "Krótka", emoji = f"{client.krotka_img}", custom_id = "krotka_btn")
     async def krotka_btn(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer(thinking = True, ephemeral = True)
 
@@ -311,7 +315,7 @@ async def self(interaction: discord.Interaction):
     await interaction.edit_original_response(content = "Skopiowano osoby")
 
 
-@tree.command(name='wklej', description='Wkleja skopiowane osoby')
+@tree.command(name = 'wklej', description = 'Wkleja skopiowane osoby')
 async def self(interaction: discord.Interaction):
     await interaction.response.defer(thinking = True, ephemeral = True)
 
